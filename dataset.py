@@ -28,11 +28,9 @@ class DeclipDataset(Dataset):
 def collate_fn(batch):
     inputs, targets = zip(*batch)
 
-    # Compute max length across both inputs and targets
-    max_len = max(
-        max(inp.shape[2], tgt.shape[2]) for inp, tgt in zip(inputs, targets)
-    )
-    # Cap max length to 1600 to prevent extremely long inputs
+    lengths = (max(inp.shape[2], tgt.shape[2]) for inp, tgt in zip(inputs, targets))
+    max_len = max(lengths)
+
     max_len = min(max_len, MAX_LEN)
     if max_len % 2 != 0:
         max_len += 1
