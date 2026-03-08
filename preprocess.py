@@ -1,3 +1,5 @@
+from typing import Any
+
 import torch
 import torchaudio.transforms as T
 import torchcodec
@@ -36,15 +38,21 @@ def waveform_to_spectrogram(waveform, sample_rate, n_fft=1024, hop_length=512):
     return spectrogram_transform(waveform)
 
 
-def process_audio(file_path):
+def process_audio(file_path, return_waveform_only=False):
+    print("preprocessing audio chunk")
     decoder, sample_rate = load_audio(file_path)
 
-    waveform = decoder.get_all_samples().data  # (channels, samples)
-    clipped_waveform = induce_clipping(decoder, sample_rate)
+    waveform_original = decoder.get_all_samples().data  # (channels, samples)
+    if return_waveform_only:
+        return waveform_original
 
-    spec_original = waveform_to_spectrogram(waveform, sample_rate)
-    spec_clipped = waveform_to_spectrogram(clipped_waveform, sample_rate)
+    waveform_clipped = induce_clipping(decoder, sample_rate)
+
+    # spec_original = waveform_to_spectrogram(waveform_original, sample_rate)
+    # spec_clipped = waveform_to_spectrogram(waveform_clipped, sample_rate)
     # return clipped_waveform
+    spec_original = Any
+    spec_clipped = Any
 
-    return spec_clipped, spec_original, clipped_waveform
+    return spec_clipped, spec_original, waveform_clipped, waveform_original
 
