@@ -1,9 +1,28 @@
 from typing import Any
-
+import os
 import torch
+from torchaudio import save
 import torchaudio.transforms as T
 import torchcodec
 from random import uniform
+import glob
+from pathlib import Path
+
+
+def chunk_dataset(data_dir, chunk_dir, chunk_size) -> None:
+    os.makedirs(chunk_dir, exist_ok=True)
+    files = glob.glob(f"{data_dir}/*.mp3")
+
+    for file in files:
+        print("Processing", file)
+        waveform = process_audio(file, return_waveform_only=True)
+        length = waveform.shape[-1]
+        stem = Path(file).stem
+
+        for i, start in enumerate(range(0, length - chunk_size, chunk_size)):
+            chunk = waveform[:, start:start + chunk_size]
+            out = f"{chunk_dir}/{stem}_{i}.mp3"
+            save(out, chunk, 44100)
 
 
 def load_audio(file_path, target_sample_rate=44100):
@@ -39,7 +58,6 @@ def waveform_to_spectrogram(waveform, sample_rate, n_fft=1024, hop_length=512):
 
 
 def process_audio(file_path, return_waveform_only=False):
-    print("preprocessing audio chunk")
     decoder, sample_rate = load_audio(file_path)
 
     waveform_original = decoder.get_all_samples().data  # (channels, samples)

@@ -10,30 +10,39 @@ CHUNK_SIZE = 16384
 
 class DeclipDataset(Dataset):
     def __init__(self, data_dir):
+
         self.files = glob.glob(f"{data_dir}/*.mp3")
         self.chunks = []
 
-        for file in self.files:
-            waveform = process_audio(file, return_waveform_only=True)
-            length = waveform.shape[-1]
-
-            for start in range(0, length - CHUNK_SIZE, CHUNK_SIZE):
-                self.chunks.append((file, start))
-        print(len(self.chunks))
+        # for file in self.files:
+        #     waveform = process_audio(file, return_waveform_only=True)
+        #     length = waveform.shape[-1]
+        #
+        #     for start in range(0, length - CHUNK_SIZE, CHUNK_SIZE):
+        #         self.chunks.append((file, start))
+        # print(len(self.chunks))
 
     def __len__(self):
         return len(self.files)
 
-    def __getitem__(self, idx):
-        try:
-            file, start = self.chunks[idx]
-            _spec_clipped, _spec_original, waveform_clipped, waveform_original = process_audio(file)
-            return waveform_clipped, waveform_original
-        except Exception as e:
-            print(f"[WARNING] Skipping file {self.files[idx]} due to error: {e}")
+    # def __getitem__(self, idx):
+    #     try:
+    #         file, start = self.chunks[idx]
+    #         _spec_clipped, _spec_original, waveform_clipped, waveform_original = process_audio(file)
+    #         return waveform_clipped, waveform_original
+    #     except Exception as e:
+    #         print(f"[WARNING] Skipping file {self.files[idx]} due to error: {e}")
+    #
+    #         new_idx = torch.randint(0, len(self), (1,)).item()
+    #         return self.__getitem__(new_idx)
 
-            new_idx = torch.randint(0, len(self), (1,)).item()
-            return self.__getitem__(new_idx)
+    def __getitem__(self, idx):
+
+        _spec_clip, _spec_orig, wav_clip, wav_orig = process_audio(self.files[idx])
+
+        # clipped = induce_clipping_from_tensor(waveform)
+
+        return wav_clip, wav_orig
 
 
 # def collate_fn(batch):
